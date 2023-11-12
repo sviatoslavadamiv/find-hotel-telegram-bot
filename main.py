@@ -15,301 +15,359 @@ def register_command(message, command: str):
                                                                      datetime.now().strftime("%H:%M:%S")}})
 
 
-@bot.message_handler(commands=['start'])  # Декоратор, который принимает команду 'start' в телеграмме
-def send_welcome(message):
-    """Задекорированная функция, которая отвечает на команду '/start', проверяет есть ли пользователь, если пользователь
-    существует, то выводит сообщение, если пользователя нет, то создает нового пользователя и потом создает клавиатуру
-    с кнопками"""
+@bot.message_handler(commands=['start'])  # A decorator that accepts the 'start' command in a telegram
+def send_welcome(message) -> None:
+    """
+    Decorated function that responds to the '/start' command, checks if the user exists, if the user exists it displays
+    a message, if the user doesn't exist it creates a new user and then creates a keyboard keys
+    :param message: Message received from a user
+    :return None:
+    """
     if user.User.all_users.get(message.from_user.id) is None:
-        bot.send_message(message.chat.id, "Добрый день, мы рады Вас видеть!"
-                                          "\nЕсли Вам нужна помощь, напишите команду /help")
+        bot.send_message(message.chat.id, "Good afternoon, we are glad to see you!"
+                                          "\nIf you need help, write the command /help")
         user.User(message.from_user.id)
     else:
-        bot.send_message(message.chat.id, "Мы рады Вас видеть снова!")
+        bot.send_message(message.chat.id, "We are happy to see you again!")
 
     register_command(message=message, command='start')
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    low_price_btn = types.KeyboardButton("Самые дешевые отели")
-    high_price_btn = types.KeyboardButton("Самые дорогие отели")
-    best_deal_btn = types.KeyboardButton("Отели наиболее подходящих по цене и расположению от центра")
-    history_btn = types.KeyboardButton("Моя история")
+    low_price_btn = types.KeyboardButton("Cheapest hotels")
+    high_price_btn = types.KeyboardButton("Most expensive hotels")
+    best_deal_btn = types.KeyboardButton("Hotels most suitable by price and location from the center")
+    history_btn = types.KeyboardButton("My history")
     markup.add(low_price_btn, high_price_btn, history_btn, best_deal_btn)
-    bot.send_message(message.chat.id, 'В меню вы можете выбрать действие, которое хотите совершить',
+    bot.send_message(message.chat.id, 'In the menu, you can select the action you want to perform',
                      reply_markup=markup)
 
 
-@bot.message_handler(commands=['help'])  # Декоратор, который принимает команду 'help' в телеграмме
-def send_help_text(message):
-    """Задекорированная функция, которая отвечает на команду '/help' и выводит сообщение"""
+@bot.message_handler(commands=['help'])  # A decorator that accepts the 'help' command in a telegram
+def send_help_text(message) -> None:
+    """
+    Decorated function that responds to the '/help' command and outputs a message
+    :param message: Message received from a user
+    :return None:
+    """
     register_command(message=message, command='help')
-    bot.send_message(message.chat.id, "Что может бот: "
-                                      "\n/lowprice - вывод самых дешёвых отелей в городе "
-                                      "\n/highprice — вывод самых дорогих отелей в городе "
-                                      "\n/bestdeal — вывод отелей, наиболее подходящих по цене и расположению от "
-                                      "центра "
-                                      "\n/history — вывод истории поиска отелей")
+    bot.send_message(message.chat.id, "What a bot can do: "
+                                      "\n/lowprice - the cheapest hotels in the city"
+                                      "\n/highprice — the most expensive hotels in the city"
+                                      "\n/bestdeal — output of hotels most suitable by price and location "
+                                      "from the center"
+                                      "\n/history — display hotel search history")
 
 
-@bot.message_handler(commands=['lowprice'])  # Декоратор, который принимает команду 'lowprice' в телеграмме
-def lowprice(message):
-    """Задекорированная функция, которая отвечает на команду '/lowprice', задает вопрос и регистрирует следующую
-    функцию"""
+@bot.message_handler(commands=['lowprice'])  # A decorator that accept the command 'lowprice' in a telegram
+def lowprice(message) -> None:
+    """
+    A decorated function that responds to the '/lowprice' command asks a question and registers the next function
+    :param message: Message received from a user
+    :return None:
+    """
     user.User.get_user(message.from_user.id).sort_order = 'PRICE'
     user.User.get_user(message.from_user.id).if_photo_for_hotels = False
     register_command(message=message, command='lowprice')
 
-    bot.send_message(message.chat.id, 'Давайте подберем вам самые дешевые отели!'
-                                      '\nВ какой город направляетесь ?')
+    bot.send_message(message.chat.id, 'Let us find you the cheapest hotels!'
+                                      '\nWhat city are you headed to?')
     bot.register_next_step_handler(message, set_city)
 
 
-@bot.message_handler(commands=['highprice'])  # Декоратор, который принимает команду 'highprice' в телеграмме
-def highprice(message):
-    """Задекорированная функция, которая отвечает на команду '/highprice', задает вопрос и регистрирует следующую
-    функцию"""
+@bot.message_handler(commands=['highprice'])  # A decorator that accepts the command 'highprice' in telegram
+def highprice(message) -> None:
+    """
+    A decorated function that responds to the '/highprice' command asks a question and registers the next function
+    :param message: Message received from a user
+    :return None:
+    """
     user.User.get_user(message.from_user.id).if_photo_for_hotels = False
     user.User.get_user(message.from_user.id).sort_order = 'PRICE_HIGHEST_FIRST'
     register_command(message=message, command='highprice')
 
-    bot.send_message(message.chat.id, 'Давайте подберем вам самые дорогие отели!'
-                                      '\nВ какой город направляетесь ?')
+    bot.send_message(message.chat.id, 'Let us find you the most expensive hotels!'
+                                      '\nWhat city are you headed to?')
     bot.register_next_step_handler(message, set_city)
 
 
-@bot.message_handler(commands=['bestdeal'])  # Декоратор, который принимает команду 'bestdeal' в телеграмме
-def bestdeal(message):
-    """Задекорированная функция, которая отвечает на команду '/bestdeal', задает вопрос и регистрирует следующую
-    функцию"""
+@bot.message_handler(commands=['bestdeal'])  # A decorator that accepts the 'bestdeal' command in a telegram
+def bestdeal(message) -> None:
+    """
+    A decorated function that responds to the '/bestdeal' command asks a question and registers the next function
+    :param message: Message received from a user
+    :return None:
+    """
     user.User.get_user(message.from_user.id).if_photo_for_hotels = False
     user.User.get_user(message.from_user.id).sort_order = 'BEST_SELLER'
     register_command(message=message, command='bestdeal')
 
-    bot.send_message(message.chat.id, 'Давайте подберем вам самые подходящие отели!'
-                                      '\nКакая минимальная цена для поиска отеля ?')
+    bot.send_message(message.chat.id, 'Let us find you the most suitable hotels!'
+                                      '\nWhat is the minimum price to find a hotel ?')
     bot.register_next_step_handler(message, set_min_price)
 
 
-@bot.message_handler(commands=['history'])  # Декоратор, который принимает команду 'history' в телеграмме
-def history(message):
-    """Задекорированная функция, которая отвечает на команду '/history' и выводит всю историю пользователя"""
+@bot.message_handler(commands=['history'])  # A decorator that accepts the 'history' command in a telegram
+def history(message) -> None:
+    """
+    A decorated function that responds to the '/history' command and outputs the user's entire history
+    :param message: Message received from a user
+    :return None:
+    """
     register_command(message=message, command='history')
     user_history_dict = user.User.get_user(message.from_user.id).history
     if not user_history_dict:
-        bot.send_message(message.from_user.id, 'Здесь пусто!')
+        bot.send_message(message.from_user.id, "It's empty!")
     else:
         for i_actions in user_history_dict:
             for i_action in i_actions:
-                bot.send_message(message.from_user.id, f'Команда: {i_actions[i_action]["command"]} '
-                                                       f'Время: {i_actions[i_action]["time_of_creating"]}')
+                bot.send_message(message.from_user.id, f'Command: {i_actions[i_action]["command"]} '
+                                                       f'Time: {i_actions[i_action]["time_of_creating"]}')
                 try:
                     if i_actions[i_action]['hotels']:
-                        bot.send_message(message.from_user.id, 'Отели которые были найдены:')
+                        bot.send_message(message.from_user.id, 'Hotels that have been found:')
                         for i_hotels in i_actions[i_action]['hotels']:
                             bot.send_message(message.from_user.id, i_hotels)
                 except KeyError:
                     pass
 
 
-def set_min_price(message):
-    """Функция, которая принимает сообщение, проверяет его валидность и записывает минимальную цену для поиска отеля"""
+def set_min_price(message) -> None:
+    """
+    A function that accepts a message, checks its validity, and records the minimum price to search for a hotel
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if int(message.text) < 0:
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже 0, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая минимальная цена для поиска отеля ?')
+            bot.send_message(message.from_user.id, 'You entered a number lower than 0, try again')
+            bot.send_message(message.chat.id, 'What is the minimum price to find a hotel ?')
             bot.register_next_step_handler(message, set_min_price)
         else:
             user.User.get_user(message.from_user.id).min_price = message.text
-            bot.send_message(message.chat.id, 'Какая максимальная цена для поиска отеля ?')
+            bot.send_message(message.chat.id, 'What is the maximum price to find a hotel ?')
             bot.register_next_step_handler(message, set_max_price)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Какая минимальная цена для поиска отеля ?')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'What is the minimum price to find a hotel ?')
         bot.register_next_step_handler(message, set_min_price)
 
 
-def set_max_price(message):
-    """Функция, которая принимает сообщение, проверяет его валидность и записывает максимальную цену для поиска отеля"""
+def set_max_price(message) -> None:
+    """
+    A function that accepts a message, checks its validity, and records the maximum price to search for a hotel
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if int(message.text) < 0:
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже 0, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая максимальная цена для поиска отеля ?')
+            bot.send_message(message.from_user.id, 'You entered a number lower than 0, try again')
+            bot.send_message(message.chat.id, 'What is the maximum price to find a hotel ?')
             bot.register_next_step_handler(message, set_max_price)
         elif int(message.text) < int(user.User.get_user(message.from_user.id).min_price):
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже минимального числа, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая максимальная цена для поиска отеля ?')
+            bot.send_message(message.from_user.id, 'You entered a number below the minimum number, try again')
+            bot.send_message(message.chat.id, 'What is the maximum price to find a hotel ?')
             bot.register_next_step_handler(message, set_max_price)
         else:
             user.User.get_user(message.from_user.id).max_price = message.text
-            bot.send_message(message.chat.id, 'Какая минимальная дистанция от центра города ?')
+            bot.send_message(message.chat.id, 'What is the minimum distance from the city center ?')
             bot.register_next_step_handler(message, set_min_distance)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Какая максимальная цена для поиска отеля ?')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'What is the maximum price to find a hotel ?')
         bot.register_next_step_handler(message, set_max_price)
 
 
-def set_min_distance(message):
-    """Функция, которая принимает сообщение, проверяет его валидность и записывает минимальную дистанцию для поиска
-    отеля"""
+def set_min_distance(message) -> None:
+    """
+    A function that accepts a message, checks its validity, and records the minimum distance to find a hotel
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if float(message.text) < 0:
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже 0, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая минимальная дистанция от центра города ?')
+            bot.send_message(message.from_user.id, 'You entered a number lower than 0, try again')
+            bot.send_message(message.chat.id, 'What is the minimum distance from the city center ?')
             bot.register_next_step_handler(message, set_min_distance)
         else:
             user.User.get_user(message.from_user.id).min_d = message.text
-            bot.send_message(message.chat.id, 'Какая максимальная дистанция от центра города ?')
+            bot.send_message(message.chat.id, 'What is the maximum distance from the city center ?')
             bot.register_next_step_handler(message, set_max_distance)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Какая минимальная дистанция от центра города ?')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'What is the minimum distance from the city center ?')
         bot.register_next_step_handler(message, set_min_distance)
 
 
-def set_max_distance(message):
-    """Функция, которая принимает сообщение, проверяет его валидность и записывает максимальную дистанцию для поиска
-    отеля"""
+def set_max_distance(message) -> None:
+    """
+    A function that accepts a message, checks its validity, and records the maximum distance to find a hotel
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if float(message.text) < 0:
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже 0, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая максимальная дистанция от центра города ?')
+            bot.send_message(message.from_user.id, 'You entered a number lower than 0, try again')
+            bot.send_message(message.chat.id, 'What is the maximum distance from the city center ?')
             bot.register_next_step_handler(message, set_max_distance)
         elif float(message.text) < float(user.User.get_user(message.from_user.id).min_d):
-            bot.send_message(message.from_user.id, 'Вы ввели число ниже минимального числа, попробуйте заново')
-            bot.send_message(message.chat.id, 'Какая максимальная дистанция от центра города ?')
+            bot.send_message(message.from_user.id, 'You entered a number below the minimum number, try again')
+            bot.send_message(message.chat.id, 'What is the maximum distance from the city center ?')
             bot.register_next_step_handler(message, set_max_distance)
         else:
             user.User.get_user(message.from_user.id).max_d = message.text
-            bot.send_message(message.chat.id, 'Какой город вы планируете посетить ?')
+            bot.send_message(message.chat.id, 'Which city are you planning to visit ?')
             bot.register_next_step_handler(message, set_city)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Какая максимальная дистанция от центра города ?')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'What is the maximum distance from the city center ?')
         bot.register_next_step_handler(message, set_max_distance)
 
 
-def set_city(message):
-    """Функция, которая принимает сообщение пользователя, делает запрос по API, находит id города, сохраняет его как
-    id города и регистрирует следующую функцию"""
+def set_city(message) -> None:
+    """
+    A function that accepts a user message, makes an API request, finds the city id, stores it as a city id and
+    registers the next function
+    :param message: Message received from a user
+    :return None:
+    """
 
     city_id = hotelrequests.find_location(message.text)
 
     if city_id is None:
-        bot.send_message(message.chat.id, 'Такого города не существует! Проверьте ввод и попробуйте заново')
-        bot.send_message(message.chat.id, 'Давайте подберем вам самые дешевые отели! '
-                                          '\nВ какой город направляетесь ?')
+        bot.send_message(message.chat.id, 'This city does not exist! Check the input and try again')
+        bot.send_message(message.chat.id, 'Let us find you the cheapest hotels!'
+                                          '\nWhat city are you headed to?')
         bot.register_next_step_handler(message, set_city)
     else:
         user.User.get_user(message.from_user.id).city_id = city_id
-        bot.send_message(message.chat.id, 'Сколько отелей показать Вам ? Максимум: 25')
+        bot.send_message(message.chat.id, 'How many hotels to show you ? Maximum: 25')
         bot.register_next_step_handler(message, check_and_set_amount_of_hotels)
 
 
-def check_and_set_amount_of_hotels(message):
-    """Функция, которая принимает сообщение пользователя, проверяет его на число и сохраняет его как количество отелей
-    для вывода пользователю. После этого создает кнопки для ответа на вопрос"""
+def check_and_set_amount_of_hotels(message) -> None:
+    """
+    A function that takes a user's message, checks it for a number, and stores it as the number of hotels
+    to output to the user. It then creates buttons to answer the question
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if int(message.text) > 25:
-            bot.send_message(message.chat.id, 'Вы превысили максиму. Максимум для показа отелей: 25'
-                                              '\nСколько отелей показать Вам ?')
+            bot.send_message(message.chat.id, 'You have exceeded the maximum. Maximum for showing hotels: 25'
+                                              '\nHow many hotels to show you ?')
             bot.register_next_step_handler(message, check_and_set_amount_of_hotels)
         elif int(message.text) <= 0:
-            bot.send_message(message.chat.id, 'Вы ввели число ниже 0, попробуйте заново'
-                                              '\nСколько фотографий желаете выводить ?')
+            bot.send_message(message.chat.id, 'You entered a number lower than 0, try again'
+                                              '\nHow many photos do you want to output ?')
             bot.register_next_step_handler(message, check_and_set_amount_of_hotels)
         else:
             user.User.get_user(message.from_user.id).amount_of_hotels = message.text
 
             keyboard = types.InlineKeyboardMarkup()
-            key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
+            key_yes = types.InlineKeyboardButton(text='Yes', callback_data='yes')
             keyboard.add(key_yes)
-            key_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
+            key_no = types.InlineKeyboardButton(text='No', callback_data='no')
             keyboard.add(key_no)
-            question = 'Показывать ли Вам фотографии отеля ?'
+            question = 'Shall I show you pictures of the hotel ?'
             bot.send_message(message.from_user.id, text=question, reply_markup=keyboard)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Сколько отелей показать Вам ? Максимум: 50')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'How many hotels to show you ? Maximum: 25')
         bot.register_next_step_handler(message, check_and_set_amount_of_hotels)
 
 
 @bot.callback_query_handler(func=lambda call: True)
-def if_photo_for_hotels(call):
-    """Задекорированная функция, которая принимает информацию о нажатии кнопки пользователем, проверяет ответ и после
-    это либо запрашивает количество фотографий для вывода либо даты для выезда в отель и регистрирует след функцию"""
+def if_photo_for_hotels(call) -> None:
+    """
+    A decorated function that accepts information about a button press by the user, checks the response and
+    after it either requests the number of photos to output or the dates for checkout and registers a next function
+    :param call: Clicked answer on button
+    :return None:
+    """
     if call.data == "yes":
         user.User.get_user(call.from_user.id).if_photo_for_hotels = True
 
-        bot.send_message(call.message.chat.id, 'Сколько фотографий желаете выводить ? Максимум: 10')
+        bot.send_message(call.message.chat.id, 'How many photos do you want to output ? Maximum: 10')
         bot.register_next_step_handler(call.message, set_amount_of_photos)
     elif call.data == "no":
-        bot.send_message(call.message.chat.id, 'В какие даты планируете прибыть в отель ?'
-                                               '\nВведите в формате yyyy-mm-dd')
+        bot.send_message(call.message.chat.id, 'What dates do you plan to arrive at the hotel ?'
+                                               '\nEnter in the format yyyy-mm-dd')
         bot.register_next_step_handler(call.message, set_check_in_date)
 
 
-def set_amount_of_photos(message):
-    """Функция, которая принимает сообщение пользователя, проверяет его и исходя из проверки либо сохраняет значение
-    как количество фотографий для вывода либо запрашивает дату для въезда в отель и регистрирует след функцию"""
+def set_amount_of_photos(message) -> None:
+    """
+    A function that receives a user's message, checks it and based on the check either stores the value as
+    the number of photos to output or requests a date for check-in and registers a next function
+    :param message: Message received from a user
+    :return None:
+    """
     try:
 
         if int(message.text) > 10:
-            bot.send_message(message.chat.id, 'Вы превысили максимум. Максимум для показа фотографий: 10'
-                                              '\nСколько фотографий желаете выводить ?')
+            bot.send_message(message.chat.id, 'You have exceeded the maximum. Maximum for displaying photos: 10'
+                                              '\nHow many photos do you want to output ?')
             bot.register_next_step_handler(message, set_amount_of_photos)
         elif int(message.text) <= 0:
-            bot.send_message(message.chat.id, 'Вы ввели число ниже 0, попробуйте заново'
-                                              '\nСколько фотографий желаете выводить ?')
+            bot.send_message(message.chat.id, 'You entered a number lower than 0, try again'
+                                              '\nHow many photos do you want to output ?')
             bot.register_next_step_handler(message, set_amount_of_photos)
         else:
             user.User.get_user(message.from_user.id).amount_of_photos = message.text
 
-            bot.send_message(message.chat.id, 'В какие даты планируете прибыть в отель ?'
-                                              '\nВведите в формате yyyy-mm-dd')
+            bot.send_message(message.chat.id, 'What dates do you plan to arrive at the hotel ?'
+                                              '\nEnter in the format yyyy-mm-dd')
             bot.register_next_step_handler(message, set_check_in_date)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка! Введите число, а не строку')
-        bot.send_message(message.chat.id, 'Сколько фотографий желаете выводить ? Максимум: 10')
+        bot.send_message(message.chat.id, 'Error! Enter a number, not a string')
+        bot.send_message(message.chat.id, 'How many photos do you want to output ? Maximum: 10')
         bot.register_next_step_handler(message, set_amount_of_photos)
 
 
-def set_check_in_date(message):
-    """Функция, которая принимает сообщение пользователя, проверяет его и исходя из проверки либо сохраняет значение
-    как дата въезда либо переспрашивает дату въезда и регистрирует след функцию"""
+def set_check_in_date(message) -> None:
+    """
+    A function that receives a user's message, checks it and based on the check either stores the value as
+    the entry date or asks the entry date again and registers a next function
+    :param message: Message received from a user
+    :return None:
+    """
     try:
         today = datetime.now().strftime('%Y-%m-%d')
         if bool(datetime.strptime(message.text, '%Y-%m-%d')) and \
                 datetime.strptime(message.text, '%Y-%m-%d') >= datetime.strptime(today, '%Y-%m-%d'):
             user.User.get_user(message.from_user.id).check_in_date = message.text
 
-            bot.send_message(message.chat.id, 'В какие даты планируете отъезд с отеля ?'
-                                              '\nВведите в формате yyyy-mm-dd')
+            bot.send_message(message.chat.id, 'On what dates do you plan to leave the hotel ?'
+                                              '\nEnter in the format yyyy-mm-dd')
             bot.register_next_step_handler(message, set_check_out_date)
         else:
-            bot.send_message(message.chat.id, 'Ошибка, проверьте дату и введите ее еще раз '
-                                              '\nВведите в формате yyyy-mm-dd')
+            bot.send_message(message.chat.id, 'Error, check the date and enter it again'
+                                              '\nEnter in the format yyyy-mm-dd')
             bot.register_next_step_handler(message, set_check_in_date)
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка, проверьте дату и введите ее еще раз '
-                                          '\nВведите в формате yyyy-mm-dd')
+        bot.send_message(message.chat.id, 'Error, check the date and enter it again'
+                                          '\nEnter in the format yyyy-mm-dd')
         bot.register_next_step_handler(message, set_check_in_date)
 
 
-def set_check_out_date(message):
-    """Функция, которая принимает сообщение пользователя, проверяет его и исходя из проверки либо сохраняет значение
-    как дата выезда либо переспрашивает дату выезда и регистрирует след функцию"""
+def set_check_out_date(message) -> None:
+    """
+    A function that receives a user's message, checks it and based on the check either stores the value as
+    the departure date or asks the departure date again and registers a next function
+    :param message: Message received from a user
+    :return None:
+    """
     try:
         if bool(datetime.strptime(message.text, '%Y-%m-%d')) and \
                 datetime.strptime(message.text, '%Y-%m-%d') > \
@@ -318,20 +376,23 @@ def set_check_out_date(message):
             user.User.get_user(message.from_user.id).check_out_date = message.text
             start_search(message.from_user.id)
         else:
-            bot.send_message(message.chat.id, 'Ошибка, проверьте дату и введите ее еще раз '
-                                              '\nВведите в формате yyyy-mm-dd')
+            bot.send_message(message.chat.id, 'Error, check the date and enter it again'
+                                              '\nEnter in the format yyyy-mm-dd')
             bot.register_next_step_handler(message, set_check_out_date)
 
     except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка, проверьте дату и введите ее еще раз '
-                                          '\nВведите в формате yyyy-mm-dd')
+        bot.send_message(message.chat.id, 'Error, check the date and enter it again'
+                                          '\nEnter in the format yyyy-mm-dd')
         bot.register_next_step_handler(message, set_check_out_date)
 
 
-def start_search(user_id):
-    """Функция, которая принимает id чата пользователя и начинает поиск отелей. После чего выводит сообщения
-    пользователю"""
-    bot.send_message(user_id, 'Начинаю поиск отелей...')
+def start_search(user_id) -> None:
+    """
+    A function that takes a user's chat id and starts searching for hotels. It then displays messages to the user
+    :param user_id: User id
+    :return None:
+    """
+    bot.send_message(user_id, "I'm starting a hotel search...")
     user_dict = user.User.get_user(user_id)
     check_in_date = user_dict.check_in_date
     check_out_date = user_dict.check_out_date
@@ -344,7 +405,7 @@ def start_search(user_id):
                 i_actions[user_dict.count_action]['hotels'] = list()
 
     if user_dict.sort_order == 'BEST_SELLER':
-        bot.send_message(user_id, 'Собираю данные отелей...')
+        bot.send_message(user_id, 'Collecting hotel data...')
         response = hotelrequests.find_hotels(city_id=user_dict.city_id,
                                              amount_of_hotels='25',
                                              check_in_date=check_in_date,
@@ -353,7 +414,7 @@ def start_search(user_id):
                                              min_price=user_dict.min_price,
                                              max_price=user_dict.max_price, )
 
-        bot.send_message(user_id, 'Фильтрую результат по Вашему запросу...')
+        bot.send_message(user_id, 'Filtering the result according to your request...')
         count_hotels = 0
         min_d = float(user_dict.min_d)
         max_d = float(user_dict.max_d)
@@ -369,14 +430,14 @@ def start_search(user_id):
                 break
 
     else:
-        bot.send_message(user_id, 'Собираю данные отелей...')
+        bot.send_message(user_id, 'Collecting hotel data...')
         response = hotelrequests.find_hotels(city_id=user_dict.city_id,
                                              amount_of_hotels=user_dict.amount_of_hotels,
                                              check_in_date=check_in_date,
                                              check_out_date=check_out_date,
                                              sort_order=user_dict.sort_order, )
 
-        bot.send_message(user_id, 'Загружаю полученный результат...')
+        bot.send_message(user_id, 'Downloading the result...')
         results = response['data']['body']['searchResults']['results']
 
     if results:
@@ -401,26 +462,26 @@ def start_search(user_id):
                         bot.send_media_group(user_id,
                                              [telebot.types.InputMediaPhoto(photo) for photo in list_of_photos])
 
-                        bot.send_message(user_id, f'Название отеля: {i_hotels["name"]}'
-                                                  f'\nАдрес: {check_address}'
-                                                  f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                                  f'\nЦена за ночь: {hotel_price}'
-                                                  f'\nЦена за {amount_days_to_stay.days} дня: '
+                        bot.send_message(user_id, f'Hotel name: {i_hotels["name"]}'
+                                                  f'\nAddress: {check_address}'
+                                                  f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                                  f'\nPrice per night: {hotel_price}'
+                                                  f'\nPrice per {amount_days_to_stay.days} day: '
                                                   f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                                  f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                                  f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                          )
 
                         for i_actions in user_dict.history:
                             for i_check_hist in i_actions:
                                 if i_check_hist == user_dict.count_action:
                                     i_actions[user_dict.count_action]['hotels'].append(
-                                        f'Название отеля: {i_hotels["name"]}'
-                                        f'\nАдрес: {i_hotels["address"]["streetAddress"]}'
-                                        f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                        f'\nЦена за ночь: {hotel_price}'
-                                        f'\nЦена за {amount_days_to_stay.days} дня: '
+                                        f'Hotel name: {i_hotels["name"]}'
+                                        f'\nAddress: {i_hotels["address"]["streetAddress"]}'
+                                        f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                        f'\nPrice per night: {hotel_price}'
+                                        f'\nPrice per {amount_days_to_stay.days} day: '
                                         f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                        f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                        f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                     )
                                 else:
                                     pass
@@ -431,26 +492,26 @@ def start_search(user_id):
                         bot.send_media_group(user_id,
                                              [telebot.types.InputMediaPhoto(photo) for photo in list_of_photos])
 
-                        bot.send_message(user_id, f'Название отеля: {i_hotels["name"]}'
-                                                  f'\nАдрес: {i_hotels["address"]["locality"]}'
-                                                  f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                                  f'\nЦена: {hotel_price}'
-                                                  f'\nЦена за {amount_days_to_stay.days} дня: '
+                        bot.send_message(user_id, f'Hotel name: {i_hotels["name"]}'
+                                                  f'\nAddress: {i_hotels["address"]["locality"]}'
+                                                  f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                                  f'\nPrice: {hotel_price}'
+                                                  f'\nPrice per {amount_days_to_stay.days} day: '
                                                   f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                                  f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                                  f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                          )
 
                         for i_actions in user_dict.history:
                             for i_check_hist in i_actions:
                                 if i_check_hist == user_dict.count_action:
                                     i_actions[user_dict.count_action]['hotels'].append(
-                                        f'Название отеля: {i_hotels["name"]}'
-                                        f'\nАдрес: {i_hotels["address"]["locality"]}'
-                                        f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                        f'\nЦена: {hotel_price}'
-                                        f'\nЦена за {amount_days_to_stay.days} дня: '
+                                        f'Hotel name: {i_hotels["name"]}'
+                                        f'\nAddress: {i_hotels["address"]["locality"]}'
+                                        f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                        f'\nPrice: {hotel_price}'
+                                        f'\nPrice per {amount_days_to_stay.days} day: '
                                         f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                        f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                        f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                     )
                                 else:
                                     pass
@@ -458,10 +519,10 @@ def start_search(user_id):
                         time.sleep(2)
 
             except KeyError:
-                bot.send_message(user_id, 'Ошибка в получение данных от сервера')
+                bot.send_message(user_id, 'Error in receiving data from the server')
 
             except Exception:
-                bot.send_message(user_id, 'Что-то пошло не так!')
+                bot.send_message(user_id, "Something's gone wrong!")
 
 
         else:
@@ -470,26 +531,26 @@ def start_search(user_id):
                     hotel_id = i_hotels["id"]
                     hotel_price = i_hotels["ratePlan"]["price"]["current"]
                     try:
-                        bot.send_message(user_id, f'Название отеля: {i_hotels["name"]}'
-                                                  f'\nАдрес: {i_hotels["address"]["streetAddress"]}'
-                                                  f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                                  f'\nЦена: {hotel_price}'
-                                                  f'\nЦена за {amount_days_to_stay.days} дня: '
+                        bot.send_message(user_id, f'Hotel name: {i_hotels["name"]}'
+                                                  f'\nAddress: {i_hotels["address"]["streetAddress"]}'
+                                                  f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                                  f'\nPrice: {hotel_price}'
+                                                  f'\nPrice per {amount_days_to_stay.days} day: '
                                                   f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                                  f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                                  f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                          )
 
                         for i_actions in user_dict.history:
                             for i_check_hist in i_actions:
                                 if i_check_hist == user_dict.count_action:
                                     i_actions[user_dict.count_action]['hotels'].append(
-                                        f'Название отеля: {i_hotels["name"]}'
-                                        f'\nАдрес: {i_hotels["address"]["streetAddress"]}'
-                                        f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                        f'\nЦена: {hotel_price}'
-                                        f'\nЦена за {amount_days_to_stay.days} дня: '
+                                        f'Hotel name: {i_hotels["name"]}'
+                                        f'\nAddress: {i_hotels["address"]["streetAddress"]}'
+                                        f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                        f'\nPrice: {hotel_price}'
+                                        f'\nPrice per {amount_days_to_stay.days} day: '
                                         f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                        f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                        f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                     )
                                 else:
                                     pass
@@ -497,26 +558,26 @@ def start_search(user_id):
                         time.sleep(2)
 
                     except KeyError:
-                        bot.send_message(user_id, f'Название отеля: {i_hotels["name"]}'
-                                                  f'\nАдрес: {i_hotels["address"]["locality"]}'
-                                                  f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                                  f'\nЦена: {hotel_price}'
-                                                  f'\nЦена за {amount_days_to_stay.days} дня: '
+                        bot.send_message(user_id, f'Hotel name: {i_hotels["name"]}'
+                                                  f'\nAddress: {i_hotels["address"]["locality"]}'
+                                                  f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                                  f'\nPrice: {hotel_price}'
+                                                  f'\nPrice per {amount_days_to_stay.days} day: '
                                                   f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                                  f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                                  f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                          )
 
                         for i_actions in user_dict.history:
                             for i_check_hist in i_actions:
                                 if i_check_hist == user_dict.count_action:
                                     i_actions[user_dict.count_action]['hotels'].append(
-                                        f'Название отеля: {i_hotels["name"]}'
-                                        f'\nАдрес: {i_hotels["address"]["locality"]}'
-                                        f'\nРасстояние от центра: {i_hotels["landmarks"][0]["distance"]}'
-                                        f'\nЦена: {hotel_price}'
-                                        f'\nЦена за {amount_days_to_stay.days} дня: '
+                                        f'Hotel name: {i_hotels["name"]}'
+                                        f'\nAddress: {i_hotels["address"]["locality"]}'
+                                        f'\nDistance from the center: {i_hotels["landmarks"][0]["distance"]}'
+                                        f'\nPrice: {hotel_price}'
+                                        f'\nPrice per {amount_days_to_stay.days} day: '
                                         f'${amount_days_to_stay.days * int(hotel_price.replace("$", "").replace(",", ""))}'
-                                        f'\nСсылка на отель: https://www.hotels.com/ho{hotel_id}'
+                                        f'\nHotel link: https://www.hotels.com/ho{hotel_id}'
                                     )
                                 else:
                                     pass
@@ -524,32 +585,35 @@ def start_search(user_id):
                         time.sleep(2)
 
             except KeyError:
-                bot.send_message(user_id, 'Ошибка в получение данных от сервера')
+                bot.send_message(user_id, 'Error in receiving data from the server')
 
             except Exception:
-                bot.send_message(user_id, 'Что-то пошло не так!')
+                bot.send_message(user_id, "Something's gone wrong!")
 
     else:
-        bot.send_message(user_id, 'К сожалению, по Вашему запросу ничего нет')
+        bot.send_message(user_id, 'Unfortunately, there is nothing for your request')
 
 
-@bot.message_handler(content_types=['text'])  # Декоратор, который принимает текст пользователя
-def answer_on_hello(message):
-    """Функция, которая принимает сообщение пользователя и сравнивает его. Если ничего не найдено, то выводит сообщение
-    об ошибке"""
-    if message.text == 'Привет':
-        bot.send_message(message.chat.id, "Привет, друг!")
-    elif message.text == 'Самые дешевые отели':
+@bot.message_handler(content_types=['text'])  # A decorator that accepts the user's text
+def answer_on_hello(message) -> None:
+    """
+    A function that takes a user's message and compares it. If nothing is found, it outputs an error message
+    :param message: Message received from a user
+    :return None:
+    """
+    if message.text == 'Hi':
+        bot.send_message(message.chat.id, "Hey, buddy!")
+    elif message.text == 'Cheapest hotels':
         lowprice(message)
-    elif message.text == 'Самые дорогие отели':
+    elif message.text == 'Most expensive hotels':
         highprice(message)
-    elif message.text == 'Отели наиболее подходящих по цене и расположению от центра':
+    elif message.text == 'Hotels most suitable by price and location from the center':
         bestdeal(message)
-    elif message.text == 'Моя история':
+    elif message.text == 'My history':
         history(message)
     else:
-        bot.send_message(message.chat.id, "Извините, но я не понимаю Вас. Я могу лишь отвечать на 'Привет' или на "
-                                          "команды, которые вы можете увидеть в /help")
+        bot.send_message(message.chat.id, "I'm sorry, but I don't understand you. I can only reply to 'Hi' "
+                                          "or to the commands you can see in /help")
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ headers = {
 def find_location(city: str):
     url = "https://hotels4.p.rapidapi.com/locations/search"
 
-    querystring = {"query": city, "locale": "ru_RU"}
+    querystring = {"query": city, "locale": "en_EN"}
 
     try:
         response = requests.request("GET", url, headers=headers, params=querystring)
